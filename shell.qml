@@ -15,6 +15,7 @@ ShellRoot {
     property bool quickSettingsVisible: false
     property bool powerMenuVisible: false
     property bool notificationVisible: false
+    property bool gitHistoryVisible: false
 
     SystemClock {
         id: clock
@@ -101,6 +102,42 @@ ShellRoot {
             SystemStats {}
             Battery {}
             Audio {}
+
+            // GIT HISTORY BUTTON
+            Glass {
+                tint: Colors.paperLight
+                glassOpacity: 0.55
+                borderOpacity: 0.65
+                glassRadius: Colors.radiusPill
+                width: 42
+                height: 42
+
+                Image {
+                  anchors.centerIn: parent
+                  source: "file:///home/arima/.config/quickshell/paper-journal/assets/github-mark.svg"
+                  width: 22
+                  height: 22
+                  fillMode: Image.PreserveAspectFit
+                  smooth: true
+                  opacity: root.gitHistoryVisible ? 1.0 : 0.82
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+
+                    onClicked: {
+                        root.gitHistoryVisible = !root.gitHistoryVisible
+
+                        if (root.gitHistoryVisible) {
+                            root.calendarVisible = false
+                            root.quickSettingsVisible = false
+                            root.powerMenuVisible = false
+                            root.notificationVisible = false
+                        }
+                    }
+                }
+            }
 
             // NOTIFICATION BUTTON
             Glass {
@@ -364,6 +401,33 @@ ShellRoot {
 
             onDismissRequested: {
                 NotificationService.dismissToast()
+            }
+        }
+    }
+
+    // FLOATING GIT HISTORY
+    PanelWindow {
+        anchors {
+            top: true
+            right: true
+        }
+
+        margins {
+            top: 72
+            right: 16
+        }
+
+        implicitWidth: 460
+        implicitHeight: 580
+        exclusiveZone: 0
+        color: "transparent"
+        visible: root.gitHistoryVisible
+
+        GitHistory {
+            anchors.fill: parent
+
+            onCloseRequested: {
+                root.gitHistoryVisible = false
             }
         }
     }
