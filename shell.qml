@@ -1,3 +1,4 @@
+//@ pragma IconTheme Papirus-Dark
 
 import QtQuick
 import Quickshell
@@ -276,8 +277,9 @@ ShellRoot {
             onCloseRequested: {
                 root.powerMenuVisible = false
             }
-        }
+          }
+        // BOTTOM APPLICATION DOCK
+        Dock {}   
     }
 }
-
 
