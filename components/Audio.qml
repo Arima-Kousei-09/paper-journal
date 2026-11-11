@@ -1,38 +1,50 @@
+
 import QtQuick
+import Quickshell
 import Quickshell.Services.Pipewire
+import ".."
 
-Rectangle {
-    implicitWidth: audioText.implicitWidth + 28
-    implicitHeight: 38
+Glass {
+    id: audioCapsule
 
-    radius: 19
-    color: "#B8F2F0EB"
-    border.color: "#80FFFFFF"
-    border.width: 1
+    // DIMENSIONS
+    implicitWidth: audioText.implicitWidth + 36
+    implicitHeight: 42
 
+    // GLASS MATERIAL
+    tint: Colors.paperLight
+    glassOpacity: 0.38
+    borderOpacity: 0.68
+    highlightOpacity: 0.36
+    glassRadius: Colors.radiusPill
+
+    // PIPEWIRE TRACKING
     PwObjectTracker {
         objects: [Pipewire.defaultAudioSink]
     }
 
+    // AUDIO INFORMATION
     Text {
         id: audioText
+
         anchors.centerIn: parent
 
         text: {
-            const sink = Pipewire.defaultAudioSink;
+            const sink = Pipewire.defaultAudioSink
 
             if (!sink || !sink.ready || !sink.audio)
-                return "VOL --";
+                return "VOL --"
 
             if (sink.audio.muted)
-                return "VOL MUTED";
+                return "VOL MUTED"
 
             return "VOL "
-                + Math.round(sink.audio.volume * 100) + "%";
+                + Math.round(sink.audio.volume * 100) + "%"
         }
 
-        color: "#34495E"
+        color: Colors.ink
         font.pixelSize: 13
         font.weight: Font.DemiBold
     }
 }
+

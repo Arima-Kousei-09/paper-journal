@@ -21,13 +21,10 @@ PanelWindow {
     exclusiveZone: 0
     color: "transparent"
 
-    Rectangle {
-        anchors.fill: parent
-        color: "transparent"
+    mask: Region {
+        item: dockBackground
     }
-    mask: Region{
-      item: dockBackground
-    }
+
     Glass {
         id: dockBackground
 
@@ -35,10 +32,10 @@ PanelWindow {
         anchors.bottom: parent.bottom
 
         width: dockRow.implicitWidth + 36
-        height: 88
+        height: 92
 
         tint: Colors.paperLight
-        glassOpacity: 0.78
+        glassOpacity: 0.25
         borderOpacity: 0.75
         highlightOpacity: 0.28
         glassRadius: Colors.radiusLarge
@@ -46,48 +43,59 @@ PanelWindow {
         Row {
             id: dockRow
 
+            property int hoveredIndex: -1
+
             anchors.centerIn: parent
             spacing: 10
 
-            
-          Components.DockItem {
-            appName: "Kitty"
-            iconName: "kitty"
-            launchCommand: "kitty"
-            appIds: ["kitty"]
-          }
+            Components.DockItem {
+                appName: "Kitty"
+                iconName: "kitty"
+                launchCommand: "kitty"
+                appIds: ["kitty"]
+                itemIndex: 0
+                hoveredIndex: dockRow.hoveredIndex
+            }
 
-          Components.DockItem {
-            appName: "Google Chrome"
-            iconName: "google-chrome"
-            launchCommand: "google-chrome-stable"
-            appIds: ["google-chrome", "google-chrome-stable"]
-          }
+            Components.DockItem {
+                appName: "Google Chrome"
+                iconName: "google-chrome"
+                launchCommand: "google-chrome-stable"
+                appIds: ["google-chrome", "google-chrome-stable"]
+                itemIndex: 1
+                hoveredIndex: dockRow.hoveredIndex
+            }
 
-          Components.DockItem {
-            appName: "Thunar"
-            iconName: "org.xfce.thunar"
-            launchCommand: "thunar"
-            appIds: ["thunar"]
-          }
+            Components.DockItem {
+                appName: "Thunar"
+                iconName: "org.xfce.thunar"
+                launchCommand: "thunar"
+                appIds: ["thunar"]
+                itemIndex: 2
+                hoveredIndex: dockRow.hoveredIndex
+            }
 
-          Components.DockItem{
-            appName: "Neovim"
-            iconName: "nvim"
-            launchCommand: ["gtk-launch", "neovim-terminal"]
-            appIds: ["kitty"]
-          }
+            Components.DockItem {
+                appName: "YouTube Music"
+                iconName: "chrome-cinhimbnkkaeohfgghhklpknlkffjgod-Default"
+                launchCommand: [
+                    "gtk-launch",
+                    "chrome-cinhimbnkkaeohfgghhklpknlkffjgod-Default"
+                ]
+                appIds: ["crx_cinhimbnkkaeohfgghhklpknlkffjgod"]
+                itemIndex: 3
+                hoveredIndex: dockRow.hoveredIndex
+            }
 
-          Components.DockItem {
-            appName: "Arduino IDE"
-            iconName: "arduino-ide-v2"
-            launchCommand: "arduino-ide"
-            appIds: ["arduino-ide", "arduino-ide-v2"]
-          }
-
-
+            Components.DockItem {
+                appName: "Arduino IDE"
+                iconName: "arduino-ide-v2"
+                launchCommand: "arduino-ide"
+                appIds: ["arduino-ide", "arduino-ide-v2"]
+                itemIndex: 4
+                hoveredIndex: dockRow.hoveredIndex
+            }
         }
-
     }
 }
 

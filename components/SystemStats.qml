@@ -2,10 +2,12 @@
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import ".."
 
-Rectangle {
+Item {
     id: root
 
+    // SYSTEM METRICS
     property real cpuUsage: 0
     property real ramUsage: 0
     property real cpuTemperature: 0
@@ -13,14 +15,111 @@ Rectangle {
     property real previousTotal: -1
     property real previousIdle: -1
 
-    implicitWidth: statsRow.implicitWidth + 28
-    implicitHeight: 38
+    // GLASS MATERIAL
+    property color glassTint: Colors.paperLight
+    property real glassOpacity: 0.38
+    property real borderOpacity: 0.65
+    property real highlightOpacity: 0.32
 
-    radius: 19
-    color: "#B8F2F0EB"
-    border.color: "#80FFFFFF"
-    border.width: 1
+    property int glassRadius: 19
 
+    implicitWidth: statsRow.implicitWidth + 32
+    implicitHeight: 42
+
+    Rectangle {
+        id: glassSurface
+
+        anchors.fill: parent
+
+        radius: root.glassRadius
+
+        color: Qt.rgba(
+            root.glassTint.r,
+            root.glassTint.g,
+            root.glassTint.b,
+            root.glassOpacity
+        )
+
+        border.width: 1
+        border.color: Qt.rgba(
+            1, 1, 1,
+            root.borderOpacity
+        )
+
+        Behavior on color {
+            ColorAnimation { duration: 220 }
+        }
+
+        // GLASS REFLECTION
+        Rectangle {
+            anchors.fill: parent
+            anchors.margins: 1
+
+            radius: root.glassRadius - 1
+
+            gradient: Gradient {
+                GradientStop {
+                    position: 0.0
+                    color: Qt.rgba(
+                        1, 1, 1,
+                        root.highlightOpacity
+                    )
+                }
+
+                GradientStop {
+                    position: 0.45
+                    color: Qt.rgba(1, 1, 1, 0.06)
+                }
+
+                GradientStop {
+                    position: 1.0
+                    color: "transparent"
+                }
+            }
+        }
+
+        // INNER BORDER
+        Rectangle {
+            anchors.fill: parent
+            anchors.margins: 2
+
+            radius: root.glassRadius - 2
+
+            color: "transparent"
+            border.width: 1
+            border.color: "#18FFFFFF"
+        }
+
+        // TOP SPECULAR HIGHLIGHT
+        Rectangle {
+            anchors {
+                top: parent.top
+                left: parent.left
+                right: parent.right
+                margins: 3
+            }
+
+            height: 1
+            radius: 1
+            color: "#A6FFFFFF"
+        }
+
+        // LOWER REFLECTION
+        Rectangle {
+            anchors {
+                bottom: parent.bottom
+                left: parent.left
+                right: parent.right
+                margins: 5
+            }
+
+            height: 1
+            radius: 1
+            color: "#1F74645A"
+        }
+    }
+
+    // SYSTEM STAT COLLECTION
     Process {
         id: statsProcess
 
@@ -46,9 +145,11 @@ Rectangle {
             for d in /sys/class/hwmon/hwmon*; do
                 if [ "$(cat "$d/name" 2>/dev/null)" = "coretemp" ]; then
                     awk '{ printf "%.0f\\n", $1/1000 }' "$d/temp1_input"
-                    break
+                    exit
                 fi
             done
+
+            printf "0\\n"
             `
         ]
 
@@ -98,8 +199,12 @@ Rectangle {
                 if (Number.isFinite(memory))
                     root.ramUsage = memory
 
-                if (Number.isFinite(temperature))
+                if (
+                    Number.isFinite(temperature) &&
+                    temperature > 0
+                ) {
                     root.cpuTemperature = temperature
+                }
             }
         }
     }
@@ -115,33 +220,37 @@ Rectangle {
         }
     }
 
+    // METRICS
     Row {
         id: statsRow
+
         anchors.centerIn: parent
         spacing: 9
 
         Text {
             text: "CPU " + Math.round(root.cpuUsage) + "%"
-            color: "#34495E"
+            color: Colors.ink
             font.pixelSize: 12
             font.weight: Font.DemiBold
         }
 
         Text {
             text: "·"
-            color: "#91AFC4"
+            color: Colors.blue
+            font.pixelSize: 12
         }
 
         Text {
             text: "RAM " + Math.round(root.ramUsage) + "%"
-            color: "#34495E"
+            color: Colors.ink
             font.pixelSize: 12
             font.weight: Font.DemiBold
         }
 
         Text {
             text: "·"
-            color: "#91AFC4"
+            color: Colors.blue
+            font.pixelSize: 12
         }
 
         Text {
@@ -149,7 +258,7 @@ Rectangle {
                 ? Math.round(root.cpuTemperature) + "°C"
                 : "--°C"
 
-            color: "#34495E"
+            color: Colors.ink
             font.pixelSize: 12
             font.weight: Font.DemiBold
         }

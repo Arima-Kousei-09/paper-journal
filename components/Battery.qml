@@ -7,26 +7,16 @@ import ".."
 Glass {
     id: batteryCapsule
 
+    // DIMENSIONS
     implicitWidth: batteryText.implicitWidth + 36
     implicitHeight: 42
 
+    // GLASS MATERIAL
     tint: Colors.paperLight
-    glassOpacity: 0.48
-    borderOpacity: 0.65
-    highlightOpacity: 0.30
+    glassOpacity: 0.38
+    borderOpacity: 0.68
+    highlightOpacity: 0.36
     glassRadius: Colors.radiusPill
-
-    // INNER GLASS LAYER
-    Glass {
-        anchors.fill: parent
-        anchors.margins: 2
-
-        tint: Colors.paperLight
-        glassOpacity: 0.58
-        borderOpacity: 0.45
-        highlightOpacity: 0.25
-        glassRadius: Colors.radiusPill
-    }
 
     // BATTERY INFORMATION
     Text {
@@ -55,5 +45,4 @@ Glass {
         font.weight: Font.DemiBold
     }
 }
-
 
