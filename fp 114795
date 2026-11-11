@@ -1,0 +1,41 @@
+PID=[0;1;39m114795[0m
+PIDFD=[0;1;39myes[0m
+PPID=[0;1;39m109332[0m
+TTY=[0;1;39mpts/1[0m
+UID=[0;1;39m1000[0m
+EUID=[0;1;39m1000[0m
+SUID=[0;1;39m1000[0m
+FSUID=[0;1;39m1000[0m
+OwnerUID=[0;1;39m1000[0m
+GID=[0;1;39m1000[0m
+EGID=[0;1;39m1000[0m
+SGID=[0;1;39m1000[0m
+FSGID=[0;1;39m1000[0m
+SupplementaryGIDs=[0;1;39m54 984 992 998 1000 1000[0m
+Comm=[0;1;39mqs[0m
+Exe=[0;1;39m/usr/bin/quickshell[0m
+CommandLine=[0;1;39mqs -c paper-journal[0m
+CGroup=[0;1;39m/user.slice/user-1000.slice/user@1000.service/kitty-109318-0.scope[0m
+Unit=[0;1;39muser@1000.service[0m
+Slice=[0;1;39muser-1000.slice[0m
+UserUnit=[0;1;39mkitty-109318-0.scope[0m
+UserSlice=[0;1;39m-.slice[0m
+Session=[0;1;39mn/a[0m
+AuditLoginUID=[0;1;39m1000[0m
+AuditSessionID=[0;1;39m13[0m
+UniqueName=[0;1;39m:1.403[0m
+EffectiveCapabilities=[0;1;39m
+[0mPermittedCapabilities=[0;1;39m
+[0mInheritableCapabilities=[0;1;39mcap_wake_alarm
+[0mBoundingCapabilities=[0;1;39mcap_chown cap_dac_override cap_dac_read_search 
+        cap_fowner cap_fsetid cap_kill cap_setgid 
+        cap_setuid cap_setpcap cap_linux_immutable cap_net_bind_service 
+        cap_net_broadcast cap_net_admin cap_net_raw cap_ipc_lock 
+        cap_ipc_owner cap_sys_module cap_sys_rawio cap_sys_chroot 
+        cap_sys_ptrace cap_sys_pacct cap_sys_admin cap_sys_boot 
+        cap_sys_nice cap_sys_resource cap_sys_time cap_sys_tty_config 
+        cap_mknod cap_lease cap_audit_write cap_audit_control 
+        cap_setfcap cap_mac_override cap_mac_admin cap_syslog 
+        cap_wake_alarm cap_block_suspend cap_audit_read cap_perfmon 
+        cap_bpf cap_checkpoint_restore
+[0m

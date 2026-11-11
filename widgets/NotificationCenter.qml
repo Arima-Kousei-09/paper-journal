@@ -1,0 +1,564 @@
+
+import QtQuick
+import Quickshell
+import ".."
+
+Item {
+    id: root
+
+    signal closeRequested()
+
+    implicitWidth: 380
+    implicitHeight: 540
+
+    readonly property int contentPadding: 20
+
+    function resolveAppIcon(icon) {
+        if (!icon)
+            return ""
+
+        const value = String(icon)
+
+        if (value.startsWith("file://"))
+            return value
+
+        if (value.startsWith("/"))
+            return "file://" + value
+
+        return Quickshell.iconPath(value, true)
+    }
+
+    Glass {
+        anchors.fill: parent
+
+        tint: Colors.paperLight
+        glassOpacity: 0.84
+        borderOpacity: 0.82
+        highlightOpacity: 0.42
+        glassRadius: Colors.radiusLarge
+    }
+
+    // Subtle decorative highlight.
+    Rectangle {
+        anchors {
+            top: parent.top
+            left: parent.left
+            right: parent.right
+            margins: 2
+        }
+
+        height: 1
+        radius: 1
+        color: "#BFFFFFFF"
+    }
+
+    Column {
+        id: mainColumn
+
+        anchors.fill: parent
+        anchors.margins: root.contentPadding
+        spacing: 13
+
+        // HEADER
+        Item {
+            width: parent.width
+            height: 52
+
+            Column {
+                anchors.left: parent.left
+                anchors.verticalCenter: parent.verticalCenter
+                spacing: 3
+
+                Text {
+                    text: "Your Journal"
+                    color: Colors.ink
+                    font.pixelSize: 21
+                    font.weight: Font.Bold
+                    font.letterSpacing: -0.5
+                }
+
+                Text {
+                    text: "NOTIFICATION CENTRE"
+                    color: Colors.faintInk
+                    font.pixelSize: 9
+                    font.weight: Font.DemiBold
+                    font.letterSpacing: 2
+                }
+            }
+
+            Row {
+                anchors.right: parent.right
+                anchors.verticalCenter: parent.verticalCenter
+                spacing: 9
+
+                Rectangle {
+                    width: 29
+                    height: 29
+                    radius: 10
+                    color: "#55FFFFFF"
+                    border.width: 1
+                    border.color: "#70FFFFFF"
+
+                    Text {
+                        anchors.centerIn: parent
+                        text: NotificationService.history.length
+                        color: Colors.ink
+                        font.pixelSize: 11
+                        font.weight: Font.Bold
+                    }
+                }
+
+                Rectangle {
+                    width: 30
+                    height: 30
+                    radius: 10
+                    color: closeHover.hovered
+                        ? "#40C69B82" : "transparent"
+
+                    Text {
+                        anchors.centerIn: parent
+                        text: "×"
+                        color: Colors.mutedInk
+                        font.pixelSize: 23
+                        font.weight: Font.Light
+                    }
+
+                    HoverHandler {
+                        id: closeHover
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: root.closeRequested()
+                    }
+
+                    Behavior on color {
+                        ColorAnimation { duration: 150 }
+                    }
+                }
+            }
+        }
+
+        // DECORATIVE DIVIDER
+        Rectangle {
+            width: parent.width
+            height: 1
+            color: "#45A99B8C"
+        }
+
+        // ACTION BAR
+        Row {
+            width: parent.width
+            height: 38
+            spacing: 8
+
+            Rectangle {
+                width: 142
+                height: 34
+                radius: Colors.radiusPill
+
+                color: NotificationService.dndEnabled
+                    ? "#D9B7A6C9"
+                    : "#65FFFFFF"
+
+                border.width: 1
+                border.color: NotificationService.dndEnabled
+                    ? "#90B7A6C9"
+                    : "#70FFFFFF"
+
+                Row {
+                    anchors.centerIn: parent
+                    spacing: 7
+
+                    Text {
+                        text: NotificationService.dndEnabled
+                            ? "◉"
+                            : "○"
+
+                        color: Colors.ink
+                        font.pixelSize: 12
+                    }
+
+                    Text {
+                        text: NotificationService.dndEnabled
+                            ? "Focus mode"
+                            : "Do not disturb"
+
+                        color: Colors.ink
+                        font.pixelSize: 10
+                        font.weight: Font.DemiBold
+                    }
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: NotificationService.toggleDnd()
+                }
+
+                Behavior on color {
+                    ColorAnimation { duration: 180 }
+                }
+            }
+
+            Item {
+                width: parent.width - 142 - 34 - 8
+                height: 1
+            }
+
+            Rectangle {
+                width: 34
+                height: 34
+                radius: 11
+                color: clearHover.hovered
+                    ? "#35C69B82"
+                    : "transparent"
+
+                Text {
+                    anchors.centerIn: parent
+                    text: "⌫"
+                    color: Colors.terracotta
+                    font.pixelSize: 17
+                }
+
+                HoverHandler {
+                    id: clearHover
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: NotificationService.clearAll()
+                }
+
+                Behavior on color {
+                    ColorAnimation { duration: 150 }
+                }
+            }
+        }
+
+        // NOTIFICATION LIST
+        Item {
+            width: parent.width
+            height: parent.height - 52 - 1 - 38 - 39
+
+            Flickable {
+                id: notificationScroll
+
+                anchors.fill: parent
+                clip: true
+
+                contentWidth: width
+                contentHeight: groupsColumn.implicitHeight
+
+                boundsBehavior: Flickable.StopAtBounds
+                flickableDirection: Flickable.VerticalFlick
+
+                Column {
+                    id: groupsColumn
+
+                    width: notificationScroll.width
+                    spacing: 17
+
+                    Repeater {
+                        model: NotificationService.groupedHistory
+
+                        delegate: Column {
+                            id: group
+
+                            required property var modelData
+
+                            width: groupsColumn.width
+                            spacing: 9
+
+                            // APPLICATION GROUP HEADER
+                            Row {
+                                width: parent.width
+                                height: 27
+                                spacing: 9
+
+                                Rectangle {
+                                    width: 25
+                                    height: 25
+                                    radius: 8
+
+                                    color: "#65B7A6C9"
+                                    border.width: 1
+                                    border.color: "#75FFFFFF"
+
+                                    Image {
+                                        id: appIconImage
+
+                                        anchors.centerIn: parent
+                                        width: 17
+                                        height: 17
+
+                                        source: root.resolveAppIcon(
+                                            group.modelData.appIcon
+                                        )
+
+                                        sourceSize.width: 48
+                                        sourceSize.height: 48
+
+                                        fillMode: Image.PreserveAspectFit
+                                        asynchronous: true
+                                        smooth: true
+                                        visible: status === Image.Ready
+                                    }
+
+                                    Text {
+                                        anchors.centerIn: parent
+
+                                        visible: !appIconImage.visible
+
+                                        text: group.modelData.appName.length
+                                            ? group.modelData.appName
+                                                .charAt(0).toUpperCase()
+                                            : "?"
+
+                                        color: Colors.ink
+                                        font.pixelSize: 11
+                                        font.weight: Font.Bold
+                                    }
+                                }
+
+                                Column {
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    spacing: 1
+
+                                    Text {
+                                        text: group.modelData.appName
+                                        color: Colors.ink
+                                        font.pixelSize: 11
+                                        font.weight: Font.Bold
+                                    }
+
+                                    Text {
+                                        text: group.modelData.entries.length
+                                            + (group.modelData.entries.length === 1
+                                                ? " notification"
+                                                : " notifications")
+
+                                        color: Colors.faintInk
+                                        font.pixelSize: 9
+                                    }
+                                }
+
+                                Item {
+                                    width: 1
+                                    height: 1
+                                }
+                            }
+
+                            // INDIVIDUAL NOTIFICATION CARDS
+                            Repeater {
+                                model: group.modelData.entries
+
+                                delegate: Rectangle {
+                                    id: card
+
+                                    required property var modelData
+
+                                    width: group.width
+                                    height: cardContent.implicitHeight + 24
+
+                                    radius: 15
+
+                                    color: cardHover.hovered
+                                        ? "#C8FFFFFF"
+                                        : "#72FFFFFF"
+
+                                    border.width: 1
+                                    border.color: card.modelData.urgency === 2
+                                        ? "#80C69B82"
+                                        : "#65FFFFFF"
+
+                                    HoverHandler {
+                                        id: cardHover
+                                    }
+
+                                    Behavior on color {
+                                        ColorAnimation { duration: 160 }
+                                    }
+
+                                    // URGENCY ACCENT
+                                    Rectangle {
+                                        anchors {
+                                            left: parent.left
+                                            top: parent.top
+                                            bottom: parent.bottom
+                                        }
+
+                                        width: 3
+                                        radius: 2
+
+                                        color: card.modelData.urgency === 2
+                                            ? Colors.terracotta
+                                            : card.modelData.urgency === 1
+                                                ? Colors.blue
+                                                : Colors.lavender
+
+                                        opacity: 0.8
+                                    }
+
+                                    Column {
+                                        id: cardContent
+
+                                        anchors {
+                                            left: parent.left
+                                            right: parent.right
+                                            top: parent.top
+                                            margins: 12
+                                        }
+
+                                        spacing: 7
+
+                                        // TITLE AND DISMISS
+                                        Row {
+                                            width: parent.width
+                                            spacing: 6
+
+                                            Text {
+                                                width: parent.width - 25
+
+                                                text: card.modelData.summary
+                                                color: Colors.ink
+
+                                                font.pixelSize: 12
+                                                font.weight: Font.Bold
+
+                                                wrapMode: Text.Wrap
+                                            }
+
+                                            Rectangle {
+                                                width: 20
+                                                height: 20
+                                                radius: 7
+
+                                                color: dismissHover.hovered
+                                                    ? "#40C69B82"
+                                                    : "transparent"
+
+                                                Text {
+                                                    anchors.centerIn: parent
+                                                    text: "×"
+                                                    color: Colors.mutedInk
+                                                    font.pixelSize: 16
+                                                }
+
+                                                HoverHandler {
+                                                    id: dismissHover
+                                                }
+
+                                                MouseArea {
+                                                    anchors.fill: parent
+                                                    cursorShape: Qt.PointingHandCursor
+
+                                                    onClicked: {
+                                                        NotificationService.dismissNotification(
+                                                            card.modelData.notification
+                                                        )
+                                                    }
+                                                }
+
+                                                Behavior on color {
+                                                    ColorAnimation {
+                                                        duration: 120
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        // BODY
+                                        Text {
+                                            width: parent.width
+
+                                            text: card.modelData.body
+                                            visible: text.length > 0
+
+                                            color: Colors.mutedInk
+                                            font.pixelSize: 11
+                                            lineHeight: 1.25
+                                            wrapMode: Text.Wrap
+                                        }
+
+                                        // TIMESTAMP
+                                        Row {
+                                            spacing: 5
+
+                                            Text {
+                                                text: "◷"
+                                                color: Colors.faintInk
+                                                font.pixelSize: 10
+                                            }
+
+                                            Text {
+                                                text: NotificationService.formatTime(
+                                                    card.modelData.receivedAt
+                                                )
+
+                                                color: Colors.faintInk
+                                                font.pixelSize: 9
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // EMPTY STATE
+                    Item {
+                        width: groupsColumn.width
+                        height: 250
+
+                        visible: NotificationService.history.length === 0
+
+                        Column {
+                            anchors.centerIn: parent
+                            spacing: 12
+
+                            Rectangle {
+                                anchors.horizontalCenter: parent.horizontalCenter
+
+                                width: 62
+                                height: 62
+                                radius: 22
+
+                                color: "#65FFFFFF"
+                                border.width: 1
+                                border.color: "#80FFFFFF"
+
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: "✧"
+                                    color: Colors.blue
+                                    font.pixelSize: 30
+                                }
+                            }
+
+                            Text {
+                                anchors.horizontalCenter: parent.horizontalCenter
+
+                                text: "A little peace and quiet."
+
+                                color: Colors.ink
+                                font.pixelSize: 14
+                                font.weight: Font.DemiBold
+                            }
+
+                            Text {
+                                anchors.horizontalCenter: parent.horizontalCenter
+
+                                text: "You're all caught up."
+                                color: Colors.faintInk
+                                font.pixelSize: 11
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

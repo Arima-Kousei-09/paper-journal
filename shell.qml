@@ -14,6 +14,7 @@ ShellRoot {
     property bool calendarVisible: false
     property bool quickSettingsVisible: false
     property bool powerMenuVisible: false
+    property bool notificationVisible: false
 
     SystemClock {
         id: clock
@@ -50,14 +51,8 @@ ShellRoot {
                 borderOpacity: 0.65
                 glassRadius: Colors.radiusPill
 
-                property bool hovered: false
-
                 width: 250
                 height: 42
-
-                Behavior on color {
-                    ColorAnimation { duration: 180 }
-                }
 
                 Row {
                     anchors.centerIn: parent
@@ -92,24 +87,78 @@ ShellRoot {
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
 
-                    onEntered: clockCapsule.hovered = true
-                    onExited: clockCapsule.hovered = false
-
                     onClicked: {
                         root.calendarVisible = !root.calendarVisible
-
                         if (root.calendarVisible) {
+                            root.quickSettingsVisible = false
+                            root.powerMenuVisible = false
+                            root.notificationVisible = false
+                        }
+                    }
+                }
+            }
+
+            SystemStats {}
+            Battery {}
+            Audio {}
+
+            // NOTIFICATION BUTTON
+            Glass {
+                id: notificationButton
+
+                tint: Colors.paperLight
+                glassOpacity: 0.55
+                borderOpacity: 0.65
+                glassRadius: Colors.radiusPill
+
+                width: 42
+                height: 42
+
+                Text {
+                    anchors.centerIn: parent
+                    text: "♧"
+                    color: root.notificationVisible
+                        ? Colors.blue : Colors.ink
+                    font.pixelSize: 21
+                }
+
+                Rectangle {
+                    visible: NotificationService.history.length > 0
+                    width: 17
+                    height: 17
+                    radius: 9
+                    anchors.right: parent.right
+                    anchors.top: parent.top
+                    anchors.rightMargin: -3
+                    anchors.topMargin: -3
+                    color: Colors.terracotta
+                    border.width: 1
+                    border.color: Colors.paperLight
+
+                    Text {
+                        anchors.centerIn: parent
+                        text: NotificationService.history.length > 9
+                            ? "9+" : NotificationService.history.length
+                        color: "#FFFFFF"
+                        font.pixelSize: 9
+                        font.weight: Font.Bold
+                    }
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+
+                    onClicked: {
+                        root.notificationVisible = !root.notificationVisible
+                        if (root.notificationVisible) {
+                            root.calendarVisible = false
                             root.quickSettingsVisible = false
                             root.powerMenuVisible = false
                         }
                     }
                 }
             }
-
-            // SYSTEM INFORMATION
-            SystemStats {}
-            Battery {}
-            Audio {}
 
             // QUICK SETTINGS
             Glass {
@@ -123,34 +172,25 @@ ShellRoot {
                 width: 42
                 height: 42
 
-                Behavior on color {
-                    ColorAnimation { duration: 180 }
-                }
-
                 Text {
                     anchors.centerIn: parent
                     text: "☼"
-
                     color: root.quickSettingsVisible
-                        ? "#FFFFFF"
-                        : Colors.ink
-
+                        ? "#FFFFFF" : Colors.ink
                     font.pixelSize: 21
                     font.weight: Font.Medium
                 }
 
                 MouseArea {
                     anchors.fill: parent
-                    hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
 
                     onClicked: {
-                        root.quickSettingsVisible =
-                            !root.quickSettingsVisible
-
+                        root.quickSettingsVisible = !root.quickSettingsVisible
                         if (root.quickSettingsVisible) {
                             root.calendarVisible = false
                             root.powerMenuVisible = false
+                            root.notificationVisible = false
                         }
                     }
                 }
@@ -168,35 +208,25 @@ ShellRoot {
                 width: 42
                 height: 42
 
-                Behavior on color {
-                    ColorAnimation { duration: 180 }
-                }
-
                 Text {
                     anchors.centerIn: parent
-
                     text: "⏻"
-
                     color: root.powerMenuVisible
-                        ? Colors.terracotta
-                        : Colors.ink
-
+                        ? Colors.terracotta : Colors.ink
                     font.pixelSize: 22
                     font.weight: Font.Medium
                 }
 
                 MouseArea {
                     anchors.fill: parent
-                    hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
 
                     onClicked: {
-                        root.powerMenuVisible =
-                            !root.powerMenuVisible
-
+                        root.powerMenuVisible = !root.powerMenuVisible
                         if (root.powerMenuVisible) {
                             root.calendarVisible = false
                             root.quickSettingsVisible = false
+                            root.notificationVisible = false
                         }
                     }
                 }
@@ -218,7 +248,6 @@ ShellRoot {
 
         implicitWidth: 340
         implicitHeight: 390
-
         exclusiveZone: 0
         color: "transparent"
         visible: root.calendarVisible
@@ -242,7 +271,6 @@ ShellRoot {
 
         implicitWidth: 340
         implicitHeight: 390
-
         exclusiveZone: 0
         color: "transparent"
         visible: root.quickSettingsVisible
@@ -266,7 +294,6 @@ ShellRoot {
 
         implicitWidth: 340
         implicitHeight: 390
-
         exclusiveZone: 0
         color: "transparent"
         visible: root.powerMenuVisible
@@ -277,9 +304,70 @@ ShellRoot {
             onCloseRequested: {
                 root.powerMenuVisible = false
             }
-          }
-        // BOTTOM APPLICATION DOCK
-        Dock {}   
+        }
     }
-}
 
+    // FLOATING NOTIFICATION CENTRE
+    PanelWindow {
+        anchors {
+            top: true
+            right: true
+        }
+
+        margins {
+            top: 72
+            right: 16
+        }
+
+        implicitWidth: 380
+        implicitHeight: 540
+        exclusiveZone: 0
+        color: "transparent"
+        visible: root.notificationVisible
+
+        NotificationCenter {
+            anchors.fill: parent
+
+            onCloseRequested: {
+                root.notificationVisible = false
+            }
+        }
+    }
+
+    // FLOATING NOTIFICATION TOAST
+    PanelWindow {
+        anchors {
+            top: true
+            right: true
+        }
+
+        margins {
+            top: 72
+            right: 16
+        }
+
+        implicitWidth: 360
+        implicitHeight: 116
+        exclusiveZone: 0
+        color: "transparent"
+
+        visible: NotificationService.activeToast !== null
+            && !root.notificationVisible
+            && !root.calendarVisible
+            && !root.quickSettingsVisible
+            && !root.powerMenuVisible
+
+        NotificationToast {
+            anchors.fill: parent
+
+            toastData: NotificationService.activeToast
+
+            onDismissRequested: {
+                NotificationService.dismissToast()
+            }
+        }
+    }
+
+    // BOTTOM APPLICATION DOCK
+    Dock {}
+}

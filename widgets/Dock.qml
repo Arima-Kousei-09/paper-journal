@@ -5,95 +5,160 @@ import Quickshell.Wayland
 import "../components" as Components
 import ".."
 
-PanelWindow {
+Scope {
     id: root
 
-    anchors {
-        bottom: true
-        left: true
-        right: true
+    property bool dockVisible: false
+
+    Timer {
+        id: hideTimer
+        interval: 500
+        repeat: false
+        onTriggered: root.dockVisible = false
     }
 
-    margins.bottom: 12
+    // Invisible three-pixel activation zone at the bottom edge.
+    PanelWindow {
+        id: revealZone
 
-    implicitHeight: 140
+        anchors {
+            bottom: true
+            left: true
+            right: true
+        }
 
-    exclusiveZone: 0
-    color: "transparent"
+        implicitHeight: 4
+        exclusiveZone: 0
+        color: "transparent"
 
-    mask: Region {
-        item: dockBackground
+        MouseArea {
+            anchors.fill: parent
+            hoverEnabled: true
+
+            onEntered: {
+                hideTimer.stop()
+                root.dockVisible = true
+            }
+
+            onExited: {
+                hideTimer.restart()
+            }
+        }
     }
 
-    Glass {
-        id: dockBackground
+    // Actual dock window.
+    PanelWindow {
+        id: dockWindow
 
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.bottom: parent.bottom
+        anchors {
+            bottom: true
+            left: true
+            right: true
+        }
 
-        width: dockRow.implicitWidth + 36
-        height: 92
+        margins.bottom: 12
+        implicitHeight: 140
 
-        tint: Colors.paperLight
-        glassOpacity: 0.25
-        borderOpacity: 0.75
-        highlightOpacity: 0.28
-        glassRadius: Colors.radiusLarge
+        exclusiveZone: 0
+        color: "transparent"
 
-        Row {
-            id: dockRow
+        mask: Region {
+            item: dockBackground
+        }
 
-            property int hoveredIndex: -1
+        Glass {
+            id: dockBackground
 
-            anchors.centerIn: parent
-            spacing: 10
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.bottom: parent.bottom
 
-            Components.DockItem {
-                appName: "Kitty"
-                iconName: "kitty"
-                launchCommand: "kitty"
-                appIds: ["kitty"]
-                itemIndex: 0
-                hoveredIndex: dockRow.hoveredIndex
+            width: dockRow.implicitWidth + 36
+            height: 92
+
+            anchors.bottomMargin: root.dockVisible ? 12 : -110
+
+            tint: Colors.paperLight
+            glassOpacity: 0.25
+            borderOpacity: 0.75
+            highlightOpacity: 0.28
+            glassRadius: Colors.radiusLarge
+
+            Behavior on anchors.bottomMargin {
+                NumberAnimation {
+                    duration: 280
+                    easing.type: Easing.OutCubic
+                }
             }
 
-            Components.DockItem {
-                appName: "Google Chrome"
-                iconName: "google-chrome"
-                launchCommand: "google-chrome-stable"
-                appIds: ["google-chrome", "google-chrome-stable"]
-                itemIndex: 1
-                hoveredIndex: dockRow.hoveredIndex
+            MouseArea {
+                anchors.fill: parent
+                hoverEnabled: true
+
+                onEntered: {
+                    hideTimer.stop()
+                    root.dockVisible = true
+                }
+
+                onExited: {
+                    hideTimer.restart()
+                }
             }
 
-            Components.DockItem {
-                appName: "Thunar"
-                iconName: "org.xfce.thunar"
-                launchCommand: "thunar"
-                appIds: ["thunar"]
-                itemIndex: 2
-                hoveredIndex: dockRow.hoveredIndex
-            }
+            Row {
+                id: dockRow
 
-            Components.DockItem {
-                appName: "YouTube Music"
-                iconName: "chrome-cinhimbnkkaeohfgghhklpknlkffjgod-Default"
-                launchCommand: [
-                    "gtk-launch",
-                    "chrome-cinhimbnkkaeohfgghhklpknlkffjgod-Default"
-                ]
-                appIds: ["crx_cinhimbnkkaeohfgghhklpknlkffjgod"]
-                itemIndex: 3
-                hoveredIndex: dockRow.hoveredIndex
-            }
+                property int hoveredIndex: -1
 
-            Components.DockItem {
-                appName: "Arduino IDE"
-                iconName: "arduino-ide-v2"
-                launchCommand: "arduino-ide"
-                appIds: ["arduino-ide", "arduino-ide-v2"]
-                itemIndex: 4
-                hoveredIndex: dockRow.hoveredIndex
+                anchors.centerIn: parent
+                spacing: 10
+
+                Components.DockItem {
+                    appName: "Kitty"
+                    iconName: "kitty"
+                    launchCommand: "kitty"
+                    appIds: ["kitty"]
+                    itemIndex: 0
+                    hoveredIndex: dockRow.hoveredIndex
+                }
+
+                Components.DockItem {
+                    appName: "Google Chrome"
+                    iconName: "google-chrome"
+                    launchCommand: "google-chrome-stable"
+                    appIds: ["google-chrome", "google-chrome-stable"]
+                    itemIndex: 1
+                    hoveredIndex: dockRow.hoveredIndex
+                }
+
+                Components.DockItem {
+                    appName: "Thunar"
+                    iconName: "org.xfce.thunar"
+                    launchCommand: "thunar"
+                    appIds: ["thunar"]
+                    itemIndex: 2
+                    hoveredIndex: dockRow.hoveredIndex
+                }
+
+                Components.DockItem {
+                    appName: "YouTube Music"
+                    iconName: "chrome-cinhimbnkkaeohfgghhklpknlkffjgod-Default"
+                    launchCommand: [
+                        "gtk-launch",
+                        "chrome-cinhimbnkkaeohfgghhklpknlkffjgod-Default"
+                    ]
+                    appIds: ["crx_cinhimbnkkaeohfgghhklpknlkffjgod"]
+                    itemIndex: 3
+                    hoveredIndex: dockRow.hoveredIndex
+                }
+
+                Components.DockItem {
+                    appName: "Arduino IDE"
+                    iconName: "arduino-ide-v2"
+                    launchCommand: "arduino-ide"
+                    appIds: ["arduino-ide", "arduino-ide-v2"]
+                    itemIndex: 4
+                    hoveredIndex: dockRow.hoveredIndex
+                }
             }
         }
     }
