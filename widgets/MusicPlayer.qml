@@ -130,21 +130,27 @@ Glass {
             }
 
             Image {
-                anchors.fill: parent
-                source: MusicService.artwork
-                visible: status === Image.Ready
-                asynchronous: true
-                cache: true
-                fillMode: Image.PreserveAspectCrop
-                smooth: true
+              id: albumArt
 
-                Rectangle {
-                    anchors.fill: parent
-                    radius: 20
-                    color: "transparent"
-                    border.width: 1
-                    border.color: Colors.glassBorder
-                }
+              anchors.fill: parent
+
+              source: root.player && root.player.trackArtUrl
+              ? root.player.trackArtUrl
+              : ""
+
+              visible: status === Image.Ready
+              asynchronous: true
+              cache: false
+              fillMode: Image.PreserveAspectCrop
+              smooth: true
+
+              Rectangle {
+                anchors.fill: parent
+                radius: 20
+                color: "transparent"
+                border.width: 1
+                border.color: Colors.glassBorder
+              }
             }
         }
 

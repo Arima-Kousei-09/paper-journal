@@ -3,94 +3,53 @@ pragma Singleton
 import QtQuick
 import Quickshell.Services.Mpris
 
-Item {
+QtObject {
     id: root
 
-    visible: false
-    width: 0
-    height: 0
-
-    property var player: {
+    // Prefer Plasma Browser Integration because it provides
+    // complete YouTube Music metadata and artwork.
+    readonly property var player: {
         const players = Mpris.players.values
+
+        if (!players)
+            return null
 
         for (let i = 0; i < players.length; i++) {
             const candidate = players[i]
 
-            if (candidate.dbusName.startsWith(
-                    "org.mpris.MediaPlayer2.chromium"))
+            if (candidate.dbusName ===
+                    "org.mpris.MediaPlayer2.plasma-browser-integration")
                 return candidate
         }
 
         return null
     }
 
-    property string lastKnownTitle: ""
+    // Track metadata
+    readonly property bool hasTrack:
+        player !== null && player.trackTitle.length > 0
+
+    readonly property string displayTitle:
+        hasTrack ? player.trackTitle : ""
+
+    readonly property string displayArtist:
+        hasTrack ? player.trackArtist : ""
+
+    readonly property string displayAlbum:
+        hasTrack ? player.trackAlbum : ""
+
+    readonly property url artwork:
+        player ? player.trackArtUrl : ""
+
+    // Refresh position-dependent bindings.
     property int positionRefresh: 0
 
-    readonly property bool hasTrack: {
-        if (!player)
-            return false
+    property Timer refreshTimer: Timer {
+        interval: 1000
+        repeat: true
+        running: true
 
-        return player.isPlaying ||
-               (player.length > 0 && lastKnownTitle.length > 0)
-    }
-
-    readonly property string displayTitle: {
-        if (player) {
-            const current = cleanTitle(player.trackTitle)
-            if (current.length > 0)
-                return current
-        }
-
-        return lastKnownTitle.length > 0
-            ? lastKnownTitle
-            : "No music playing"
-    }
-
-    readonly property string displayArtist: {
-        if (!player)
-            return ""
-
-        return player.trackArtist || player.trackAlbumArtist || ""
-    }
-
-    readonly property string displayAlbum: {
-        if (!player)
-            return ""
-
-        return player.trackAlbum || ""
-    }
-
-    readonly property string artwork: {
-        if (!player)
-            return ""
-
-        return player.trackArtUrl || ""
-    }
-
-    function cleanTitle(title) {
-        if (!title)
-            return ""
-
-        let result = String(title).trim()
-        result = result.replace(/\s*\|\s*YouTube Music$/i, "")
-
-        if (result.length === 0 ||
-            result.toLowerCase() === "youtube music" ||
-            result.toLowerCase() === "chrome")
-            return ""
-
-        return result
-    }
-
-    function rememberTitle() {
-        if (!player)
-            return
-
-        const title = cleanTitle(player.trackTitle)
-
-        if (title.length > 0)
-            lastKnownTitle = title
+        onTriggered: root.positionRefresh++
     }
 
     function formatTime(seconds) {
@@ -99,25 +58,5 @@ Item {
         const remaining = total % 60
 
         return minutes + ":" + String(remaining).padStart(2, "0")
-    }
-
-    onPlayerChanged: rememberTitle()
-
-    Component.onCompleted: rememberTitle()
-
-    Connections {
-        target: root.player
-
-        function onTrackTitleChanged() {
-            root.rememberTitle()
-        }
-    }
-
-    Timer {
-        interval: 500
-        running: true
-        repeat: true
-
-        onTriggered: root.positionRefresh++
     }
 }
